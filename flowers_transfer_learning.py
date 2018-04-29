@@ -57,7 +57,7 @@ def train_model(model, criterion, optimizer, epochs, training_data_loader, valid
     print_every = 40
     steps = 0
 
-    for e in range(epochs):
+    for epoch in range(epochs):
         running_loss = 0
 
         # Get inputs and labels from training set
@@ -93,7 +93,7 @@ def train_model(model, criterion, optimizer, epochs, training_data_loader, valid
             if steps % print_every == 0:
                 test_loss, accuracy = validate_model(model, criterion, validation_data_loader)
 
-                print("Epoch: {}/{} ".format(e+1, epochs),
+                print("Epoch: {}/{} ".format(epoch+1, epochs),
                         "Training Loss: {:.3f} ".format(running_loss/print_every),
                         "Test Loss: {:.3f} ".format(test_loss),
                         "Test Accuracy: {:.3f}".format(accuracy))
