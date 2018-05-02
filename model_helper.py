@@ -8,32 +8,42 @@ import utility
 from PIL import Image
 
 
-def create_model(arch, class_to_idx):
-    # Load pretrained DenseNet model
-    model = models.densenet121(pretrained=True)
-    #model = models.vgg16(pretrained=True)
+def get_model_from_arch(arch, hidden_units):
+    # Load pre-trained model
+    if arch == 'densenet121':
+        model = models.densenet121(pretrained=True)
+        classifier_input_size = model.classifier.in_features
+    elif arch == 'vgg16':
+        model = models.vgg16(pretrained=True)
+        classifier_input_size = model.classifier[0].in_features
 
     # Freeze parameters so we don't backprop through them
     for param in model.parameters():
         param.requires_grad = False
 
-    # Replace classifier, ensure output sizes matches number of classes
-    # input_size = 224 * 224 * 3
-    output_size = 102
+    # Replace classifier, ensure input and output sizes match
+    classifier_output_size = 102
 
     classifier = nn.Sequential(OrderedDict([
-        ('fc1', nn.Linear(1024, 500)),
+        ('fc1', nn.Linear(classifier_input_size, hidden_units)),
         ('relu', nn.ReLU()),
-        ('fc2', nn.Linear(500, output_size)),
+        ('fc2', nn.Linear(hidden_units, classifier_output_size)),
         ('output', nn.LogSoftmax(dim=1))
     ]))
 
     model.classifier = classifier
 
+    return model
+
+
+def create_model(arch, hidden_units, learning_rate, class_to_idx):
+    # Load pre-trained model
+    model = get_model_from_arch(arch, hidden_units)
+
     # Set training parameters
     parameters = filter(lambda p: p.requires_grad, model.parameters())
-    # optimizer = optim.SGD(parameters, lr=0.001)
-    optimizer = optim.Adam(parameters, lr=0.001)
+    # optimizer = optim.SGD(parameters, lr=learning_rate)
+    optimizer = optim.Adam(parameters, lr=learning_rate)
     # criterion = nn.CrossEntropyLoss()
     criterion = nn.NLLLoss()
 
@@ -43,10 +53,11 @@ def create_model(arch, class_to_idx):
     return model, optimizer, criterion
 
 
-def save_checkpoint(file_path, model, optimizer, total_epochs):
+def save_checkpoint(file_path, model, optimizer, arch, hidden_units, epochs):
     state = {
-        'epoch': total_epochs,
-        'arch': 'densenet121',
+        'arch': arch,
+        'hidden_units': hidden_units,
+        'epochs': epochs,
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
         'class_to_idx': model.class_to_idx
@@ -54,32 +65,21 @@ def save_checkpoint(file_path, model, optimizer, total_epochs):
 
     torch.save(state, file_path)
 
-    print("Checkpoint Saved: '{}' (arch={} epochs={})".format(
-        file_path, state['arch'], state['epoch']))
+    print("Checkpoint Saved: '{}'".format(file_path))
 
 
 def load_checkpoint(file_path):
-    # Get pretrained DenseNet model
-    model = models.densenet121(pretrained=True)
-    #model = models.vgg16(pretrained=True)
+    state = torch.load(file_path)
 
-    # Replace classifier, ensure output sizes matches number of classes (102)
-    classifier = nn.Sequential(OrderedDict([
-        ('fc1', nn.Linear(1024, 500)),
-        ('relu', nn.ReLU()),
-        ('fc2', nn.Linear(500, 102)),
-        ('output', nn.LogSoftmax(dim=1))
-    ]))
-
-    model.classifier = classifier
+    # Get pre-trained model
+    model = get_model_from_arch(state['arch'], state['hidden_units'])
 
     # Load model state
-    state = torch.load(file_path)
     model.load_state_dict(state['state_dict'])
     model.class_to_idx = state['class_to_idx']
 
-    print("Checkpoint Loaded: '{}' (arch={} epochs={})".format(
-        file_path, state['arch'], state['epoch']))
+    print("Checkpoint Loaded: '{}' (arch={}, hidden_units={}, epochs={})".format(
+        file_path, state['arch'], state['hidden_units'], state['epochs']))
 
     return model
 
@@ -119,7 +119,13 @@ def validate(model, criterion, data_loader, use_gpu):
     return test_loss/len(data_loader), accuracy/len(data_loader)
 
 
-def train(model, criterion, optimizer, epochs, training_data_loader, validation_data_loader, use_gpu):
+def train(model,
+          criterion,
+          optimizer,
+          epochs,
+          training_data_loader,
+          validation_data_loader,
+          use_gpu):
     # Ensure model in training mode
     model.train()
 

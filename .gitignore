@@ -102,3 +102,9 @@ ENV/
 
 # data
 flowers/
+
+# vscode
+.vscode/
+
+# saved checkpoints
+/checkpoints
