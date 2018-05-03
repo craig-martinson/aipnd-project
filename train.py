@@ -119,7 +119,8 @@ def main():
                        use_gpu)
 
     # Save trained model
-    file_path = in_args.save_dir + '/' + in_args.arch + '_checkpoint.pth'
+    file_path = in_args.save_dir + '/' + in_args.arch + \
+        '_epoch' + str(in_args.epochs) + '.pth'
 
     model_helper.save_checkpoint(file_path,
                                  model,
