@@ -17,7 +17,7 @@ def get_input_args():
                         help='Model checkpoint file to use for prediction')
 
     # Add optional arguments
-    parser.add_argument('--top_k', type=int, default=3,
+    parser.add_argument('--top_k', type=int,
                         help='Return top k most likely classes')
 
     parser.add_argument('--category_names', type=str,
@@ -26,6 +26,10 @@ def get_input_args():
     parser.add_argument('--gpu', dest='gpu',
                         action='store_true', help='Use GPU for prediction')
     parser.set_defaults(gpu=False)
+
+    parser.add_argument('--verbose', dest='verbose',
+                        action='store_true', help='Display additional processing information')
+    parser.set_defaults(verbose=False)
 
     return parser.parse_args()
 
@@ -45,12 +49,12 @@ def main():
     # Check for GPU
     use_gpu = torch.cuda.is_available() and in_args.gpu
 
-    # Print parameter information
-    print("Predicting on {} using {}".format(
-        "GPU" if use_gpu else "CPU", in_args.checkpoint))
+    if in_args.verbose:
+        print("Predicting on {} using {}".format(
+            "GPU" if use_gpu else "CPU", in_args.checkpoint))
 
     # Loads a pretrained model
-    model = model_helper.load_checkpoint(in_args.checkpoint)
+    model = model_helper.load_checkpoint(in_args.checkpoint, in_args.verbose)
 
     # Move tensors to GPU if available
     if use_gpu:
@@ -65,26 +69,32 @@ def main():
             use_mapping_file = True
 
     # Get prediction
+    number_of_results = in_args.top_k if in_args.top_k else 1
+
     probs, classes = model_helper.predict(
-        in_args.input, model, use_gpu, in_args.top_k)
+        in_args.input, model, use_gpu, number_of_results)
 
     # Print results
-    print("\nTop {} Classes predicted for '{}':".format(
-        len(classes), in_args.input))
+    if number_of_results > 1:
+        print("\nTop {} Classes predicted for '{}':".format(
+            len(classes), in_args.input))
 
-    if use_mapping_file:
-        print("\n{:<30} {}".format("Flower", "Probability"))
-        print("{:<30} {}".format("------", "-----------"))
-    else:
-        print("\n{:<10} {}".format("Class", "Probability"))
-        print("{:<10} {}".format("------", "-----------"))
-
-    for i in range(0, len(classes)):
         if use_mapping_file:
-            print("{:<30} {:.2f}".format(
-                get_title(classes[i], cat_to_name), probs[i]))
+            print("\n{:<30} {}".format("Flower", "Probability"))
+            print("{:<30} {}".format("------", "-----------"))
         else:
-            print("{:<10} {:.2f}".format(classes[i], probs[i]))
+            print("\n{:<10} {}".format("Class", "Probability"))
+            print("{:<10} {}".format("------", "-----------"))
+
+        for i in range(0, len(classes)):
+            if use_mapping_file:
+                print("{:<30} {:.2f}".format(
+                    get_title(classes[i], cat_to_name), probs[i]))
+            else:
+                print("{:<10} {:.2f}".format(classes[i], probs[i]))
+    else:
+        print("\nMost likely image class is '{}' with probability of {:.2f}".format(get_title(
+            classes[0], cat_to_name) if use_mapping_file else classes[0], probs[0]))
 
     # Computes overall runtime in seconds & prints it in hh:mm:ss format
     end_time = time()

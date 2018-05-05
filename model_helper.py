@@ -9,13 +9,19 @@ from PIL import Image
 
 
 def get_model_from_arch(arch, hidden_units):
-    # Load pre-trained model
-    if arch == 'densenet121':
-        model = models.densenet121(pretrained=True)
+    ''' load an existing PyTorch model, freeze parameters and subsitute classifier.
+    '''
+    if arch == 'densenet':
+        model = models.densenet161(pretrained=True)
         classifier_input_size = model.classifier.in_features
-    elif arch == 'vgg16':
-        model = models.vgg16(pretrained=True)
+    elif arch == 'vgg':
+        model = models.vgg19(pretrained=True)
         classifier_input_size = model.classifier[0].in_features
+    elif arch == 'resnet':
+        model = models.resnet18(pretrained=True)
+        classifier_input_size = model.fc.in_features
+    else:
+        raise RuntimeError("Unknown model")
 
     # Freeze parameters so we don't backprop through them
     for param in model.parameters():
@@ -31,20 +37,25 @@ def get_model_from_arch(arch, hidden_units):
         ('output', nn.LogSoftmax(dim=1))
     ]))
 
-    model.classifier = classifier
+    if arch == 'densenet':
+        model.classifier = classifier
+    elif arch == 'vgg':
+        model.classifier = classifier
+    elif arch == 'resnet':
+        model.fc = classifier
 
     return model
 
 
 def create_model(arch, hidden_units, learning_rate, class_to_idx):
+    ''' Create a deep learning model from existing PyTorch model.
+    '''
     # Load pre-trained model
     model = get_model_from_arch(arch, hidden_units)
 
     # Set training parameters
     parameters = filter(lambda p: p.requires_grad, model.parameters())
-    # optimizer = optim.SGD(parameters, lr=learning_rate)
     optimizer = optim.Adam(parameters, lr=learning_rate)
-    # criterion = nn.CrossEntropyLoss()
     criterion = nn.NLLLoss()
 
     # Swap keys and items
@@ -54,6 +65,8 @@ def create_model(arch, hidden_units, learning_rate, class_to_idx):
 
 
 def save_checkpoint(file_path, model, optimizer, arch, hidden_units, epochs):
+    ''' Save a trained deep learning model.
+    '''
     state = {
         'arch': arch,
         'hidden_units': hidden_units,
@@ -68,7 +81,9 @@ def save_checkpoint(file_path, model, optimizer, arch, hidden_units, epochs):
     print("Checkpoint Saved: '{}'".format(file_path))
 
 
-def load_checkpoint(file_path):
+def load_checkpoint(file_path, verbose=False):
+    ''' Load a previously trained deep learning model.
+    '''
     state = torch.load(file_path)
 
     # Get pre-trained model
@@ -78,13 +93,16 @@ def load_checkpoint(file_path):
     model.load_state_dict(state['state_dict'])
     model.class_to_idx = state['class_to_idx']
 
-    print("Checkpoint Loaded: '{}' (arch={}, hidden_units={}, epochs={})".format(
-        file_path, state['arch'], state['hidden_units'], state['epochs']))
+    if verbose:
+        print("Checkpoint Loaded: '{}' (arch={}, hidden_units={}, epochs={})".format(
+            file_path, state['arch'], state['hidden_units'], state['epochs']))
 
     return model
 
 
 def validate(model, criterion, data_loader, use_gpu):
+    ''' Validate a deep learning model against a validation dataset.
+    '''
     # Put model in inference mode
     model.eval()
 
@@ -126,6 +144,8 @@ def train(model,
           training_data_loader,
           validation_data_loader,
           use_gpu):
+    ''' Train a deep learning model using a training dataset.
+    '''
     # Ensure model in training mode
     model.train()
 
@@ -167,16 +187,16 @@ def train(model,
             running_loss += loss.data[0]
 
             if steps % print_every == 0:
-                test_loss, accuracy = validate(model,
-                                               criterion,
-                                               validation_data_loader,
-                                               use_gpu)
+                validation_loss, validation_accuracy = validate(model,
+                                                                criterion,
+                                                                validation_data_loader,
+                                                                use_gpu)
 
                 print("Epoch: {}/{} ".format(epoch+1, epochs),
                       "Training Loss: {:.3f} ".format(
                           running_loss/print_every),
-                      "Test Loss: {:.3f} ".format(test_loss),
-                      "Test Accuracy: {:.3f}".format(accuracy))
+                      "Validation Loss: {:.3f} ".format(validation_loss),
+                      "Validation Accuracy: {:.3f}".format(validation_accuracy))
 
                 running_loss = 0
 
@@ -185,7 +205,7 @@ def train(model,
 
 
 def predict(image_path, model, use_gpu, topk=5):
-    ''' Predict the class (or classes) of an image using a trained deep learning model.
+    ''' Predict the class (or classes) of an image using a previously trained deep learning model.
     '''
     # Put model in inference mode
     model.eval()
@@ -198,7 +218,7 @@ def predict(image_path, model, use_gpu, topk=5):
     if use_gpu:
         var_inputs = Variable(tensor.float().cuda(), volatile=True)
     else:
-        var_inputs = Variable(tensor, volatile=True)
+        var_inputs = Variable(tensor, volatile=True).float()
 
     # Model is expecting 4d tensor, add another dimension
     var_inputs = var_inputs.unsqueeze(0)

@@ -15,11 +15,11 @@ def get_input_args():
                         help='Set directory to training images')
 
     # Add optional arguments
-    parser.add_argument('--save_dir', type=str, default='checkpoints',
+    parser.add_argument('--save_dir', type=str,
                         help='Set directory to save checkpoints')
 
-    parser.add_argument('--arch', dest='arch', default='vgg16', action='store',
-                        choices=['vgg16', 'densenet121'], help='Model architecture to use for training')
+    parser.add_argument('--arch', dest='arch', default='vgg', action='store',
+                        choices=['vgg', 'densenet', 'resnet'], help='Model architecture to use for training')
 
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='Set learning rate hyperparameter')
@@ -51,10 +51,6 @@ def main():
 
     print("Learning rate:{}, Hidden Units:{}, Epochs:{}".format(
         in_args.learning_rate, in_args.hidden_units, in_args.epochs))
-
-    # Create save directory if required
-    if not os.path.exists(in_args.save_dir):
-        os.makedirs(in_args.save_dir)
 
     # Set data paths
     train_dir = in_args.data_dir + '/train'
@@ -119,8 +115,19 @@ def main():
                        use_gpu)
 
     # Save trained model
-    file_path = in_args.save_dir + '/' + in_args.arch + \
-        '_epoch' + str(in_args.epochs) + '.pth'
+    if in_args.save_dir:
+
+        # Create save directory if required
+        if not os.path.exists(in_args.save_dir):
+            os.makedirs(in_args.save_dir)
+
+         # Save checkpoint in save directory
+        file_path = in_args.save_dir + '/' + in_args.arch + \
+            '_epoch' + str(in_args.epochs) + '.pth'
+    else:
+        # Save checkpoint in current directory
+        file_path = in_args.arch + \
+            '_epoch' + str(in_args.epochs) + '.pth'
 
     model_helper.save_checkpoint(file_path,
                                  model,
@@ -129,10 +136,10 @@ def main():
                                  in_args.hidden_units,
                                  in_args.epochs)
 
-    # Do validation on the test set
+    # Get prediction accuracy using test dataset
     test_loss, accuracy = model_helper.validate(
         model, criterion, dataloaders['testing'], use_gpu)
-    print("Post load Validation Accuracy: {:.3f}".format(accuracy))
+    print("Testing Accuracy: {:.3f}".format(accuracy))
 
     # Prediction
     image_path = 'flowers/test/28/image_05230.jpg'

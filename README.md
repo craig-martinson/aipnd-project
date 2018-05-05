@@ -1,21 +1,36 @@
-# Image Classifier Project
+# PyTorch Transfer Learning
 
 Project code for Udacity's AI Programming with Python Nanodegree program.
 
-## Training Examples
-The following will train a densenet121 model executing on the GPU to a validation accuracy of 92.4%:
+## Unit Testing
+Run unit tests for training (require to generate checkpoints for prediction test case):
 
-```python train.py flowers --arch densenet121 --gpu --epochs 4```
+```python -m unittest test_model_helper.TrainingTestCase```
 
-The following will train a vgg16 model executing on the GPU to a validation accuracy of 87.3%:
+Run unit tests for prediction (assumes checkpoints have been generated):
 
-```python train.py flowers --arch vgg16 --gpu --epochs 8```
+```python -m unittest test_model_helper.PredictionTestCase```
 
-## Prediction Examples
-The following will return the top 5 most likely classes using a pre-trained densenet121 model executing on the GPU:
+## Examples
+### Training
+The following will train a densenet model executing on the GPU:
 
-```python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet121_epoch1.pth --gpu --top_k 5```
+```python train.py flowers --arch densenet --gpu --epochs 5```
 
-The following will return the top 5 most likely classes using a pre-trained densenet121 model executing on the GPU and map categories to real names using a mapping file:
+The following will train a vgg model executing on the GPU:
 
-```python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet121_epoch1.pth --gpu --top_k 5 --category_names cat_to_name.json```
+```python train.py flowers --arch vgg --gpu --epochs 5```
+
+The following will train a densenet model executing on the GPU:
+
+```python train.py flowers --arch densenet --gpu --epochs 5```
+
+### Prediction
+The following will return the most likely class using a pre-trained densenet model executing on the GPU:
+
+```python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet_epoch5.pth --gpu```
+
+The following will return the top 5 most likely classes using a pre-trained densenet model executing on the GPU and map classes to real names using a mapping file:
+
+```python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet_epoch5.pth --gpu --top_k 5 --category_names cat_to_name.json```
+
