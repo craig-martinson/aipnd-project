@@ -2,14 +2,31 @@
 
 Project code for Udacity's AI Programming with Python Nanodegree program.
 
+## Sample data
+You can download sample data using curl:
+
+```curl -O https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz```
+
+And extract using tar:
+```mkdir flowers```
+```tar -xvzf flower_data.tar.gz -C flowers```
+
 ## Unit Testing
-Run unit tests for training (require to generate checkpoints for prediction test case):
+Run unit tests for training using the GPU (require to generate checkpoints for prediction test cases):
 
-```python -m unittest test_model_helper.TrainingTestCase```
+```python -m unittest test_model_helper.TrainingGpuTestCase```
 
-Run unit tests for prediction (assumes checkpoints have been generated):
+Run unit tests for training using the CPU:
 
-```python -m unittest test_model_helper.PredictionTestCase```
+```python -m unittest test_model_helper.TrainingCpuTestCase```
+
+Run unit tests for prediction using the GPU (assumes checkpoints have been generated):
+
+```python -m unittest test_model_helper.PredictionGpuTestCase```
+
+Run unit tests for prediction using the CPU (assumes checkpoints have been generated):
+
+```python -m unittest test_model_helper.PredictionCpuTestCase```
 
 ## Examples
 ### Training
