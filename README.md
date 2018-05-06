@@ -31,7 +31,7 @@ tar -xvzf flower_data.tar.gz -C flowers
 ### Usage
 ```
 python train.py [-h] [--save_dir SAVE_DIR]
-                [--arch {densenet121,densenet161,densenet201,vgg13,vgg16,vgg19,resnet18,resnet34,resnet50}]
+                [--arch {densenet121,densenet161,densenet201,vgg13_bn,vgg16_bn,vgg19_bn,resnet18,resnet34,resnet50}]
                 [--learning_rate LEARNING_RATE] [--hidden_units HIDDEN_UNITS]
                 [--epochs EPOCHS] [--gpu] [--num_workers NUM_WORKERS]
                 [--pin_memory]
@@ -47,7 +47,7 @@ python train.py flowers --arch densenet121 --epochs 5 --gpu --pin_memory --num_w
 The following will train a vgg13 model on the GPU for 5 epochs:
 
 ```
-python train.py flowers --arch vgg13 --epochs 5 --gpu --pin_memory --num_workers 4
+python train.py flowers --arch vgg13_bn --epochs 5 --gpu --pin_memory --num_workers 4
 ```
 
 The following will train a resnet18 model on the CPU for 3 epochs and save the checkpoint in the checkpoints directory:
@@ -73,7 +73,7 @@ python predict.py flowers/test/28/image_05230.jpg densenet121_epoch5.pth --gpu
 The following will return the top 5 most likely classes using a vgg13 checkpoint in the checkpoints directory executing on the GPU and map classes to real names using a mapping file:
 
 ```
-python predict.py flowers/test/28/image_05230.jpg checkpoints/vgg13_epoch5.pth --gpu --top_k 5 --category_names cat_to_name.json
+python predict.py flowers/test/28/image_05230.jpg checkpoints/vgg13_bn_epoch5.pth --gpu --top_k 5 --category_names cat_to_name.json
 ```
 ## Unit Testing
 ## Training

@@ -117,14 +117,14 @@ class TrainingGpuTestCase(unittest.TestCase):
     def test_densenet201(self):
         train_test(self, 'densenet201', True)
 
-    def test_vgg13(self):
-        train_test(self, 'vgg13', True)
+    def test_vgg13_bn(self):
+        train_test(self, 'vgg13_bn', True)
 
-    def test_vgg16(self):
-        train_test(self, 'vgg16', True)
+    def test_vgg16_bn(self):
+        train_test(self, 'vgg16_bn', True)
 
-    def test_vgg19(self):
-        train_test(self, 'vgg19', True)
+    def test_vgg19_bn(self):
+        train_test(self, 'vgg19_bn', True)
 
     def test_resnet18(self):
         train_test(self, 'resnet18', True)
@@ -147,14 +147,14 @@ class TrainingCpuTestCase(unittest.TestCase):
     def test_densenet201(self):
         train_test(self, 'densenet201', False)
 
-    def test_vgg13(self):
-        train_test(self, 'vgg13', False)
+    def test_vgg13_bn(self):
+        train_test(self, 'vgg13_bn', False)
 
-    def test_vgg16(self):
-        train_test(self, 'vgg16', False)
+    def test_vgg16_bn(self):
+        train_test(self, 'vgg16_bn', False)
 
-    def test_vgg19(self):
-        train_test(self, 'vgg19', False)
+    def test_vgg19_bn(self):
+        train_test(self, 'vgg19_bn', False)
 
     def test_resnet18(self):
         train_test(self, 'resnet18', False)
@@ -178,13 +178,13 @@ class InferenceGpuTestCase(unittest.TestCase):
         predict_test(self, 'densenet201', True)
 
     def test_vgg13(self):
-        predict_test(self, 'vgg13', True)
+        predict_test(self, 'vgg13_bn', True)
 
     def test_vgg16(self):
-        predict_test(self, 'vgg16', True)
+        predict_test(self, 'vgg16_bn', True)
 
     def test_vgg19(self):
-        predict_test(self, 'vgg19', True)
+        predict_test(self, 'vgg19_bn', True)
 
     def test_resnet18(self):
         predict_test(self, 'resnet18', True)
@@ -208,13 +208,13 @@ class InferenceCpuTestCase(unittest.TestCase):
         predict_test(self, 'densenet201', False)
 
     def test_vgg13(self):
-        predict_test(self, 'vgg13', False)
+        predict_test(self, 'vgg13_bn', False)
 
     def test_vgg16(self):
-        predict_test(self, 'vgg16', False)
+        predict_test(self, 'vgg16_bn', False)
 
     def test_vgg19(self):
-        predict_test(self, 'vgg19', False)
+        predict_test(self, 'vgg19_bn', False)
 
     def test_resnet18(self):
         predict_test(self, 'resnet18', False)

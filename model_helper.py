@@ -20,14 +20,14 @@ def get_model_from_arch(arch, hidden_units):
     elif arch == 'densenet201':
         model = models.densenet201(pretrained=True)
         classifier_input_size = model.classifier.in_features
-    elif arch == 'vgg13':
-        model = models.vgg13(pretrained=True)
+    elif arch == 'vgg13_bn':
+        model = models.vgg13_bn(pretrained=True)
         classifier_input_size = model.classifier[0].in_features
-    elif arch == 'vgg16':
-        model = models.vgg16(pretrained=True)
+    elif arch == 'vgg16_bn':
+        model = models.vgg16_bn(pretrained=True)
         classifier_input_size = model.classifier[0].in_features
-    elif arch == 'vgg19':
-        model = models.vgg19(pretrained=True)
+    elif arch == 'vgg19_bn':
+        model = models.vgg19_bn(pretrained=True)
         classifier_input_size = model.classifier[0].in_features
     elif arch == 'resnet18':
         model = models.resnet18(pretrained=True)

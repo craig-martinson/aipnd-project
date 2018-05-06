@@ -22,9 +22,9 @@ def get_input_args():
                         choices=['densenet121',
                                  'densenet161',
                                  'densenet201',
-                                 'vgg13',
-                                 'vgg16',
-                                 'vgg19',
+                                 'vgg13_bn',
+                                 'vgg16_bn',
+                                 'vgg19_bn',
                                  'resnet18',
                                  'resnet34',
                                  'resnet50'],
@@ -161,13 +161,6 @@ def main():
     test_loss, accuracy = model_helper.validate(
         model, criterion, dataloaders['testing'], use_gpu)
     print("Testing Accuracy: {:.3f}".format(accuracy))
-
-    # Prediction
-    image_path = 'flowers/test/28/image_05230.jpg'
-    print("Predication for: {}".format(image_path))
-    probs, classes = model_helper.predict(image_path, model, use_gpu)
-    print(probs)
-    print(classes)
 
     # Computes overall runtime in seconds & prints it in hh:mm:ss format
     end_time = time()
