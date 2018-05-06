@@ -109,3 +109,4 @@ flowers/
 # saved checkpoints
 /checkpoints
 /testing
+*.pth

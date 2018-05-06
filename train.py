@@ -34,6 +34,13 @@ def get_input_args():
                         action='store_true', help='Use GPU for training')
     parser.set_defaults(gpu=False)
 
+    parser.add_argument('--num_workers', type=int, default=0,
+                        help='Number of subprocesses to use for data loading')
+
+    parser.add_argument('--pin_memory', dest='pin_memory',
+                        action='store_true', help='Request data loader to copy tensors into CUDA pinned memory')
+    parser.set_defaults(pin_memory=False)
+
     return parser.parse_args()
 
 
@@ -46,11 +53,14 @@ def main():
     use_gpu = torch.cuda.is_available() and in_args.gpu
 
     # Print parameter information
-    print("Training on {} using {}".format(
-        "GPU" if use_gpu else "CPU", in_args.arch))
+    if use_gpu:
+        print("Training on {} using {} worker(s)".format(
+            "GPU with pinned memory" if in_args.pin_memory else "GPU", in_args.num_workers))
+    else:
+        print("Training on CPU.")
 
-    print("Learning rate:{}, Hidden Units:{}, Epochs:{}".format(
-        in_args.learning_rate, in_args.hidden_units, in_args.epochs))
+    print("Architecture:{}, Learning rate:{}, Hidden Units:{}, Epochs:{}".format(
+        in_args.arch, in_args.learning_rate, in_args.hidden_units, in_args.epochs))
 
     # Set data paths
     train_dir = in_args.data_dir + '/train'
@@ -87,7 +97,9 @@ def main():
     }
 
     # Using the image datasets and the transforms, define the dataloaders
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_gpu else {}
+    kwargs = {'num_workers': in_args.num_workers,
+              'pin_memory': in_args.pin_memory} if use_gpu else {}
+
     dataloaders = {
         'training': torch.utils.data.DataLoader(image_datasets['training'], batch_size=64, shuffle=True, **kwargs),
         'validation': torch.utils.data.DataLoader(image_datasets['validation'], batch_size=64, shuffle=True, **kwargs),

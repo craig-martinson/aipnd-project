@@ -179,7 +179,7 @@ class TrainingCpuTestCase(unittest.TestCase):
     }
 
     def test_densenet(self):
-        kwargs = {}
+        kwargs = {'num_workers': 1, 'pin_memory': True}
         training_dataloder = torch.utils.data.DataLoader(
             self.image_datasets['training'], batch_size=64, shuffle=True, **kwargs)
         validation_dataloder = torch.utils.data.DataLoader(
