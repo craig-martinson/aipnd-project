@@ -9,16 +9,34 @@ from PIL import Image
 
 
 def get_model_from_arch(arch, hidden_units):
-    ''' load an existing PyTorch model, freeze parameters and subsitute classifier.
+    ''' Load an existing PyTorch model, freeze parameters and subsitute classifier.
     '''
-    if arch == 'densenet':
+    if arch == 'densenet121':
+        model = models.densenet121(pretrained=True)
+        classifier_input_size = model.classifier.in_features
+    elif arch == 'densenet161':
         model = models.densenet161(pretrained=True)
         classifier_input_size = model.classifier.in_features
-    elif arch == 'vgg':
+    elif arch == 'densenet201':
+        model = models.densenet201(pretrained=True)
+        classifier_input_size = model.classifier.in_features
+    elif arch == 'vgg13':
+        model = models.vgg13(pretrained=True)
+        classifier_input_size = model.classifier[0].in_features
+    elif arch == 'vgg16':
+        model = models.vgg16(pretrained=True)
+        classifier_input_size = model.classifier[0].in_features
+    elif arch == 'vgg19':
         model = models.vgg19(pretrained=True)
         classifier_input_size = model.classifier[0].in_features
-    elif arch == 'resnet':
+    elif arch == 'resnet18':
         model = models.resnet18(pretrained=True)
+        classifier_input_size = model.fc.in_features
+    elif arch == 'resnet34':
+        model = models.resnet34(pretrained=True)
+        classifier_input_size = model.fc.in_features
+    elif arch == 'resnet50':
+        model = models.resnet50(pretrained=True)
         classifier_input_size = model.fc.in_features
     else:
         raise RuntimeError("Unknown model")
@@ -37,11 +55,11 @@ def get_model_from_arch(arch, hidden_units):
         ('output', nn.LogSoftmax(dim=1))
     ]))
 
-    if arch == 'densenet':
+    if arch.startswith('densenet'):
         model.classifier = classifier
-    elif arch == 'vgg':
+    elif arch.startswith('vgg'):
         model.classifier = classifier
-    elif arch == 'resnet':
+    elif arch.startswith('resnet'):
         model.fc = classifier
 
     return model

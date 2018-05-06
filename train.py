@@ -19,7 +19,16 @@ def get_input_args():
                         help='Set directory to save checkpoints')
 
     parser.add_argument('--arch', dest='arch', default='vgg', action='store',
-                        choices=['vgg', 'densenet', 'resnet'], help='Model architecture to use for training')
+                        choices=['densenet121',
+                                 'densenet161',
+                                 'densenet201',
+                                 'vgg13',
+                                 'vgg16',
+                                 'vgg19',
+                                 'resnet18',
+                                 'resnet34',
+                                 'resnet50'],
+                        help='Model architecture to use for training')
 
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='Set learning rate hyperparameter')
