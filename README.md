@@ -77,25 +77,25 @@ python predict.py flowers/test/28/image_05230.jpg checkpoints/vgg13_epoch5.pth -
 ```
 ## Unit Testing
 ## Training
-Run unit tests for training using the GPU (require to generate checkpoints for prediction test cases):
+Run unit tests for training using the GPU (required to generate checkpoints for inference GPU test cases):
 
 ```
 python -m unittest test_model_helper.TrainingGpuTestCase
 ```
 
-Run unit tests for training using the CPU (takes a long time):
+Run unit tests for training using the CPU (required to generate checkpoints for inference CPU test cases):
 
 ```
 python -m unittest test_model_helper.TrainingCpuTestCase
 ```
 ## Inference
-Run unit tests for prediction using the GPU (assumes checkpoints have been generated):
+Run unit tests for inference using the GPU (assumes checkpoints have been generated):
 
 ```
 python -m unittest test_model_helper.InferenceGpuTestCase
 ```
 
-Run unit tests for prediction using the CPU (assumes checkpoints have been generated):
+Run unit tests for inference using the CPU (assumes checkpoints have been generated):
 
 ```
 python -m unittest test_model_helper.InferenceCpuTestCase
