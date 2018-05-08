@@ -52,7 +52,7 @@ def get_dataloders(data_dir, use_gpu, num_workers, pin_memory):
     dataloaders = {
         'training': torch.utils.data.DataLoader(image_datasets['training'], batch_size=64, shuffle=True, **kwargs),
         'validation': torch.utils.data.DataLoader(image_datasets['validation'], batch_size=64, shuffle=True, **kwargs),
-        'testing': torch.utils.data.DataLoader(image_datasets['testing'], batch_size=64, shuffle=True, **kwargs)
+        'testing': torch.utils.data.DataLoader(image_datasets['testing'], batch_size=64, shuffle=False, **kwargs)
     }
 
     class_to_idx = image_datasets['training'].class_to_idx
@@ -62,6 +62,7 @@ def get_dataloders(data_dir, use_gpu, num_workers, pin_memory):
 def get_model_from_arch(arch, hidden_units):
     ''' Load an existing PyTorch model, freeze parameters and subsitute classifier.
     '''
+
     if arch == 'densenet121':
         model = models.densenet121(pretrained=True)
         classifier_input_size = model.classifier.in_features
@@ -116,7 +117,7 @@ def get_model_from_arch(arch, hidden_units):
     return model
 
 
-def create_model(arch, hidden_units, learning_rate, class_to_idx):
+def create_model(arch, learning_rate, hidden_units, class_to_idx):
     ''' Create a deep learning model from existing PyTorch model.
     '''
     # Load pre-trained model
@@ -125,19 +126,21 @@ def create_model(arch, hidden_units, learning_rate, class_to_idx):
     # Set training parameters
     parameters = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = optim.Adam(parameters, lr=learning_rate)
+    optimizer.zero_grad()
     criterion = nn.NLLLoss()
 
-    # Swap keys and items
-    model.class_to_idx = {class_to_idx[k]: k for k in class_to_idx}
+   # Save class to index mapping
+    model.class_to_idx = class_to_idx
 
     return model, optimizer, criterion
 
 
-def save_checkpoint(file_path, model, optimizer, arch, hidden_units, epochs):
+def save_checkpoint(file_path, model, optimizer, arch, learning_rate, hidden_units, epochs):
     ''' Save a trained deep learning model.
     '''
     state = {
         'arch': arch,
+        'learning_rate': learning_rate,
         'hidden_units': hidden_units,
         'epochs': epochs,
         'state_dict': model.state_dict(),
@@ -156,11 +159,14 @@ def load_checkpoint(file_path, verbose=False):
     state = torch.load(file_path)
 
     # Get pre-trained model
-    model = get_model_from_arch(state['arch'], state['hidden_units'])
+    model, optimizer, criterion = create_model(state['arch'],
+                                               state['learning_rate'],
+                                               state['hidden_units'],
+                                               state['class_to_idx'])
 
-    # Load model state
+    # Load checkpoint state into model
     model.load_state_dict(state['state_dict'])
-    model.class_to_idx = state['class_to_idx']
+    optimizer.load_state_dict(state['optimizer'])
 
     if verbose:
         print("Checkpoint Loaded: '{}' (arch={}, hidden_units={}, epochs={})".format(
@@ -304,9 +310,12 @@ def predict(image_path, model, use_gpu, topk=5):
     classes = ps[1].cpu() if use_gpu else ps[1]
 
     # Map classes to indices
+    inverted_class_to_idx = {
+        model.class_to_idx[k]: k for k in model.class_to_idx}
+
     mapped_classes = list()
     for label in classes.numpy()[0]:
-        mapped_classes.append(model.class_to_idx[label])
+        mapped_classes.append(inverted_class_to_idx[label])
 
     # Return results
     return probs.numpy()[0], mapped_classes

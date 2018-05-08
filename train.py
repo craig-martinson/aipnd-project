@@ -36,7 +36,7 @@ def get_input_args():
     parser.add_argument('--learning_rate', type=float, default=0.001,
                         help='Learning rate hyperparameter')
 
-    parser.add_argument('--hidden_units', type=int, default=512,
+    parser.add_argument('--hidden_units', type=int, default=600,
                         help='Number of hidden units hyperparameter')
 
     parser.add_argument('--epochs', type=int, default=5,
@@ -85,8 +85,8 @@ def main():
 
     # Create model
     model, optimizer, criterion = model_helper.create_model(in_args.arch,
-                                                            in_args.hidden_units,
                                                             in_args.learning_rate,
+                                                            in_args.hidden_units,
                                                             class_to_idx)
 
     # Move tensors to GPU if available
@@ -122,6 +122,7 @@ def main():
                                  model,
                                  optimizer,
                                  in_args.arch,
+                                 in_args.learning_rate,
                                  in_args.hidden_units,
                                  in_args.epochs)
 

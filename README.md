@@ -68,19 +68,19 @@ The following model architectures are available:
 | ResNet | [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) |
 
 ### Examples
-1. The following will train a densenet model on the GPU for 5 epochs:
+1. The following will train a densenet model on the GPU for 9 epochs:
 
 ```
-python train.py flowers --arch densenet121 --epochs 5 --gpu --pin_memory --num_workers 4 --save_dir checkpoints
+python train.py flowers --arch densenet121 --epochs 9 --gpu --pin_memory --num_workers 4
 ```
 
-2. The following will train a vgg model on the GPU for 7 epochs:
+2. The following will train a vgg model on the GPU for 7 epochs and place checkpoint in checkpoints directory:
 
 ```
 python train.py flowers --arch vgg13_bn --epochs 7 --gpu --pin_memory --num_workers 4 --save_dir checkpoints
 ```
 
-3. The following will train a resnet model on the CPU for 3 epochs:
+3. The following will train a resnet model on the CPU for 3 epochs and place checkpoint in checkpoints directory:
 
 ```
 python train.py flowers --arch resnet18 --epochs 3 --save_dir checkpoints
@@ -109,7 +109,7 @@ optional arguments:
 1. The following will return the most likely class using a densenet checkpoint executing on the GPU:
 
 ```
-python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet121_checkpoint.pth --gpu
+python predict.py flowers/test/28/image_05230.jpg densenet121_checkpoint.pth --gpu
 ```
 
 2. The following will return the top 5 most likely classes using a vgg checkpoint executing on the GPU and map classes to categories using a mapping file:

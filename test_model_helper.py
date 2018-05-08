@@ -8,10 +8,10 @@ import json
 
 data_dir = 'flowers'
 testing_dir = 'testing'
-gpu_epochs = 7
-cpu_epochs = 7
+gpu_epochs = 9
+cpu_epochs = 5
 category_names = 'cat_to_name.json'
-hidden_units = 512
+hidden_units = 600
 learning_rate = 0.001
 test_image = 'flowers/test/28/image_05230.jpg'
 correct_prediction_class = '28'
@@ -22,15 +22,15 @@ top_k = 5
 
 
 def train_test(tester, arch, enable_gpu):
-    pin_memory = True if enable_gpu else False
+    pin_memory = enable_gpu
     dataloaders, class_to_idx = model_helper.get_dataloders(data_dir,
                                                             enable_gpu,
                                                             num_workers,
                                                             pin_memory)
 
     model, optimizer, criterion = model_helper.create_model(arch,
-                                                            hidden_units,
                                                             learning_rate,
+                                                            hidden_units,
                                                             class_to_idx)
     if enable_gpu:
         model.cuda()
@@ -58,6 +58,7 @@ def train_test(tester, arch, enable_gpu):
                                  model,
                                  optimizer,
                                  arch,
+                                 learning_rate,
                                  hidden_units,
                                  epochs)
 
@@ -66,7 +67,7 @@ def predict_test(tester, arch, enable_gpu):
     checkpoint_dir = testing_dir + '/gpu' if enable_gpu else '/cpu'
     checkpoint = checkpoint_dir + '/' + arch + '_checkpoint.pth'
 
-    model = model_helper.load_checkpoint(checkpoint, True)
+    model = model_helper.load_checkpoint(checkpoint)
 
     if enable_gpu:
         model.cuda()
