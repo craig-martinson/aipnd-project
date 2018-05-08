@@ -47,6 +47,7 @@ def get_dataloders(data_dir, use_gpu, num_workers, pin_memory):
     }
 
     # Using the image datasets and the transforms, define the dataloaders
+    # Refer https://pytorch.org/docs/stable/notes/cuda.html for pin_memory info
     kwargs = {'num_workers': num_workers, 'pin_memory': pin_memory}
 
     dataloaders = {
@@ -61,6 +62,7 @@ def get_dataloders(data_dir, use_gpu, num_workers, pin_memory):
 
 def get_model_from_arch(arch, hidden_units):
     ''' Load an existing PyTorch model, freeze parameters and subsitute classifier.
+    Refer https://pytorch.org/docs/stable/torchvision/models.html
     '''
 
     if arch == 'densenet121':
@@ -137,6 +139,7 @@ def create_model(arch, learning_rate, hidden_units, class_to_idx):
 
 def save_checkpoint(file_path, model, optimizer, arch, learning_rate, hidden_units, epochs):
     ''' Save a trained deep learning model.
+    Refer https://stackoverflow.com/questions/42703500/best-way-to-save-a-trained-model-in-pytorch
     '''
     state = {
         'arch': arch,
@@ -199,9 +202,6 @@ def validate(model, criterion, data_loader, use_gpu):
         # Model's output is log-softmax,
         # take exponential to get the probabilities
         ps = torch.exp(output).data
-
-        # Model's output is softmax
-        # ps = output.data
 
         # Class with highest probability is our predicted class,
         equality = (labels.data == ps.max(1)[1])
