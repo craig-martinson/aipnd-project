@@ -8,8 +8,8 @@ import json
 
 data_dir = 'flowers'
 testing_dir = 'testing'
-gpu_epochs = 5
-cpu_epochs = 1
+gpu_epochs = 7
+cpu_epochs = 7
 category_names = 'cat_to_name.json'
 hidden_units = 512
 learning_rate = 0.001
@@ -17,6 +17,7 @@ test_image = 'flowers/test/28/image_05230.jpg'
 correct_prediction_class = '28'
 correct_prediction_category = 'stemless gentian'
 num_workers = 4
+num_cpu_threads = 16
 top_k = 5
 
 
@@ -33,6 +34,8 @@ def train_test(tester, arch, enable_gpu):
                                                             class_to_idx)
     if enable_gpu:
         model.cuda()
+    else:
+        torch.set_num_threads(num_cpu_threads)
 
     epochs = gpu_epochs if enable_gpu else cpu_epochs
 
@@ -44,11 +47,12 @@ def train_test(tester, arch, enable_gpu):
                        dataloaders['validation'],
                        enable_gpu)
 
-    if not os.path.exists(testing_dir):
-        os.makedirs(testing_dir)
+    checkpoint_dir = testing_dir + '/gpu' if enable_gpu else '/cpu'
 
-    ptype = '_gpu_' if enable_gpu else '_cpu_'
-    checkpoint = testing_dir + '/' + arch + ptype + 'checkpoint.pth'
+    if not os.path.exists(checkpoint_dir):
+        os.makedirs(checkpoint_dir)
+
+    checkpoint = checkpoint_dir + '/' + arch + '_checkpoint.pth'
 
     model_helper.save_checkpoint(checkpoint,
                                  model,
@@ -59,8 +63,8 @@ def train_test(tester, arch, enable_gpu):
 
 
 def predict_test(tester, arch, enable_gpu):
-    ptype = '_gpu_' if enable_gpu else '_cpu_'
-    checkpoint = testing_dir + '/' + arch + ptype + 'checkpoint.pth'
+    checkpoint_dir = testing_dir + '/gpu' if enable_gpu else '/cpu'
+    checkpoint = checkpoint_dir + '/' + arch + '_checkpoint.pth'
 
     model = model_helper.load_checkpoint(checkpoint, True)
 

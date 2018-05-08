@@ -6,7 +6,7 @@ PyTorch transfer learning example developed as part of Udacity's AI Programming 
 ### Environment
 Tested on the following environment:
 - Ubuntu 16.04
-- Python3:
+- Python 3.6.5:
     - Numpy
     - PyTorch
     - TorchVision
@@ -31,10 +31,10 @@ tar -xvzf flower_data.tar.gz -C flowers
 ### Usage
 ```
 python train.py [-h] [--save_dir SAVE_DIR]
-                [--arch {vgg13_bn,vgg16_bn,densenet161,resnet50,resnet18,densenet201,densenet121,vgg19_bn,resnet34}]
+                [--arch {densenet161,vgg16_bn,resnet18,resnet34,resnet50,densenet201,vgg13_bn,densenet121,vgg19_bn}]
                 [--learning_rate LEARNING_RATE] [--hidden_units HIDDEN_UNITS]
                 [--epochs EPOCHS] [--gpu] [--num_workers NUM_WORKERS]
-                [--pin_memory]
+                [--pin_memory] [--num_threads NUM_THREADS]
                 data_dir
 
 positional arguments:
@@ -43,7 +43,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --save_dir SAVE_DIR   Directory used to save checkpoints
-  --arch {vgg13_bn,vgg16_bn,densenet161,resnet50,resnet18,densenet201,densenet121,vgg19_bn,resnet34}
+  --arch {densenet161,vgg16_bn,resnet18,resnet34,resnet50,densenet201,vgg13_bn,densenet121,vgg19_bn}
                         Model architecture to use for training
   --learning_rate LEARNING_RATE
                         Learning rate hyperparameter
@@ -55,6 +55,8 @@ optional arguments:
                         Number of subprocesses to use for data loading
   --pin_memory          Request data loader to copy tensors into CUDA pinned
                         memory
+  --num_threads NUM_THREADS
+                        Number of threads used to train model when using CPU
 ```
 ### Model Architectures
 The following model architectures are available:
@@ -66,19 +68,19 @@ The following model architectures are available:
 | ResNet | [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) |
 
 ### Examples
-The following will train a densenet121 model on the GPU for 5 epochs:
+1. The following will train a densenet model on the GPU for 5 epochs:
 
 ```
-python train.py flowers --arch densenet121 --epochs 5 --gpu --pin_memory --num_workers 4
+python train.py flowers --arch densenet121 --epochs 5 --gpu --pin_memory --num_workers 4 --save_dir checkpoints
 ```
 
-The following will train a vgg13 model on the GPU for 5 epochs:
+2. The following will train a vgg model on the GPU for 7 epochs:
 
 ```
-python train.py flowers --arch vgg13_bn --epochs 5 --gpu --pin_memory --num_workers 4
+python train.py flowers --arch vgg13_bn --epochs 7 --gpu --pin_memory --num_workers 4 --save_dir checkpoints
 ```
 
-The following will train a resnet18 model on the CPU for 3 epochs and save the checkpoint in the checkpoints directory:
+3. The following will train a resnet model on the CPU for 3 epochs:
 
 ```
 python train.py flowers --arch resnet18 --epochs 3 --save_dir checkpoints
@@ -104,17 +106,23 @@ optional arguments:
   --verbose             Display additional processing information
 ```
 ### Examples
-The following will return the most likely class using a densenet121 checkpoint executing on the GPU:
+1. The following will return the most likely class using a densenet checkpoint executing on the GPU:
 
 ```
-python predict.py flowers/test/28/image_05230.jpg densenet121_epoch5.pth --gpu
+python predict.py flowers/test/28/image_05230.jpg checkpoints/densenet121_checkpoint.pth --gpu
 ```
 
-The following will return the top 5 most likely classes using a vgg13 checkpoint in the checkpoints directory executing on the GPU and map classes to real names using a mapping file:
+2. The following will return the top 5 most likely classes using a vgg checkpoint executing on the GPU and map classes to categories using a mapping file:
 
 ```
-python predict.py flowers/test/28/image_05230.jpg checkpoints/vgg13_bn_epoch5.pth --gpu --top_k 5 --category_names cat_to_name.json
+python predict.py flowers/test/28/image_05230.jpg checkpoints/vgg13_bn_checkpoint.pth --gpu --top_k 5 --category_names cat_to_name.json
 ```
+
+3. The following will return the most likely class using a resnet checkpoint executing on the CPU:
+```
+python predict.py flowers/test/28/image_05230.jpg checkpoints/resnet18_checkpoint.pth
+```
+
 ## Unit Testing
 ## Training
 Run unit tests for training using the GPU (required to generate checkpoints for inference GPU test cases):

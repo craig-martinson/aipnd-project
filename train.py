@@ -46,12 +46,15 @@ def get_input_args():
                         action='store_true', help='Use GPU for training')
     parser.set_defaults(gpu=False)
 
-    parser.add_argument('--num_workers', type=int, default=0,
+    parser.add_argument('--num_workers', type=int, default=4,
                         help='Number of subprocesses to use for data loading')
 
     parser.add_argument('--pin_memory', dest='pin_memory',
                         action='store_true', help='Request data loader to copy tensors into CUDA pinned memory')
     parser.set_defaults(pin_memory=False)
+
+    parser.add_argument('--num_threads', type=int, default=16,
+                        help='Number of threads used to train model when using CPU')
 
     return parser.parse_args()
 
@@ -66,10 +69,10 @@ def main():
 
     # Print parameter information
     if use_gpu:
-        print("Training on {} using {} worker(s)".format(
-            "GPU with pinned memory" if in_args.pin_memory else "GPU", in_args.num_workers))
+        print("Training on GPU{}".format(
+            " with pinned memory" if in_args.pin_memory else "."))
     else:
-        print("Training on CPU.")
+        print("Training on CPU using {} threads.".format(in_args.num_threads))
 
     print("Architecture:{}, Learning rate:{}, Hidden Units:{}, Epochs:{}".format(
         in_args.arch, in_args.learning_rate, in_args.hidden_units, in_args.epochs))
@@ -90,6 +93,8 @@ def main():
     if use_gpu:
         model.cuda()
         criterion.cuda()
+    else:
+        torch.set_num_threads(in_args.num_threads)
 
     # Train the network
     model_helper.train(model,
@@ -108,12 +113,10 @@ def main():
             os.makedirs(in_args.save_dir)
 
          # Save checkpoint in save directory
-        file_path = in_args.save_dir + '/' + in_args.arch + \
-            '_epoch' + str(in_args.epochs) + '.pth'
+        file_path = in_args.save_dir + '/' + in_args.arch + '_checkpoint.pth'
     else:
         # Save checkpoint in current directory
-        file_path = in_args.arch + \
-            '_epoch' + str(in_args.epochs) + '.pth'
+        file_path = in_args.arch + '_checkpoint.pth'
 
     model_helper.save_checkpoint(file_path,
                                  model,
