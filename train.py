@@ -12,31 +12,34 @@ def get_input_args():
 
     # Add positional arguments
     parser.add_argument('data_dir', type=str,
-                        help='Set directory to training images')
+                        help='Directory used to locate source images')
 
     # Add optional arguments
     parser.add_argument('--save_dir', type=str,
-                        help='Set directory to save checkpoints')
+                        help='Directory used to save checkpoints')
+
+    valid_archs = {'densenet121',
+                   'densenet161',
+                   'densenet201',
+                   'vgg13_bn',
+                   'vgg16_bn',
+                   'vgg19_bn',
+                   'resnet18',
+                   'resnet34',
+                   'resnet50'
+                   }
 
     parser.add_argument('--arch', dest='arch', default='vgg', action='store',
-                        choices=['densenet121',
-                                 'densenet161',
-                                 'densenet201',
-                                 'vgg13_bn',
-                                 'vgg16_bn',
-                                 'vgg19_bn',
-                                 'resnet18',
-                                 'resnet34',
-                                 'resnet50'],
+                        choices=valid_archs,
                         help='Model architecture to use for training')
 
     parser.add_argument('--learning_rate', type=float, default=0.001,
-                        help='Set learning rate hyperparameter')
+                        help='Learning rate hyperparameter')
 
     parser.add_argument('--hidden_units', type=int, default=512,
-                        help='Set number of hidden units hyperparameter')
+                        help='Number of hidden units hyperparameter')
 
-    parser.add_argument('--epochs', type=int, default=3,
+    parser.add_argument('--epochs', type=int, default=5,
                         help='Number of epochs used to train model')
 
     parser.add_argument('--gpu', dest='gpu',
@@ -71,62 +74,24 @@ def main():
     print("Architecture:{}, Learning rate:{}, Hidden Units:{}, Epochs:{}".format(
         in_args.arch, in_args.learning_rate, in_args.hidden_units, in_args.epochs))
 
-    # Set data paths
-    train_dir = in_args.data_dir + '/train'
-    valid_dir = in_args.data_dir + '/valid'
-    test_dir = in_args.data_dir + '/test'
-
-    # Define transforms for the training, validation, and testing sets
-    data_transforms = {
-        'training': transforms.Compose([transforms.RandomRotation(30),
-                                        transforms.RandomResizedCrop(224),
-                                        transforms.RandomHorizontalFlip(),
-                                        transforms.ToTensor(),
-                                        transforms.Normalize([0.485, 0.456, 0.406],
-                                                             [0.229, 0.224, 0.225])]),
-
-        'validation': transforms.Compose([transforms.Resize(256),
-                                          transforms.CenterCrop(224),
-                                          transforms.ToTensor(),
-                                          transforms.Normalize([0.485, 0.456, 0.406],
-                                                               [0.229, 0.224, 0.225])]),
-
-        'testing': transforms.Compose([transforms.Resize(256),
-                                       transforms.CenterCrop(224),
-                                       transforms.ToTensor(),
-                                       transforms.Normalize([0.485, 0.456, 0.406],
-                                                            [0.229, 0.224, 0.225])])
-    }
-
-    # Load the datasets with ImageFolder
-    image_datasets = {
-        'training': datasets.ImageFolder(train_dir, transform=data_transforms['training']),
-        'validation': datasets.ImageFolder(valid_dir, transform=data_transforms['validation']),
-        'testing': datasets.ImageFolder(test_dir, transform=data_transforms['testing'])
-    }
-
-    # Using the image datasets and the transforms, define the dataloaders
-    kwargs = {'num_workers': in_args.num_workers,
-              'pin_memory': in_args.pin_memory} if use_gpu else {}
-
-    dataloaders = {
-        'training': torch.utils.data.DataLoader(image_datasets['training'], batch_size=64, shuffle=True, **kwargs),
-        'validation': torch.utils.data.DataLoader(image_datasets['validation'], batch_size=64, shuffle=True, **kwargs),
-        'testing': torch.utils.data.DataLoader(image_datasets['testing'], batch_size=64, shuffle=True, **kwargs)
-    }
+    # Get dataloaders for training
+    dataloaders, class_to_idx = model_helper.get_dataloders(in_args.data_dir,
+                                                            use_gpu,
+                                                            in_args.num_workers,
+                                                            in_args.pin_memory)
 
     # Create model
     model, optimizer, criterion = model_helper.create_model(in_args.arch,
                                                             in_args.hidden_units,
                                                             in_args.learning_rate,
-                                                            image_datasets['training'].class_to_idx)
+                                                            class_to_idx)
 
     # Move tensors to GPU if available
     if use_gpu:
         model.cuda()
         criterion.cuda()
 
-    # Train the network using traning data
+    # Train the network
     model_helper.train(model,
                        criterion,
                        optimizer,

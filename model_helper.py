@@ -8,6 +8,57 @@ import utility
 from PIL import Image
 
 
+def get_dataloders(data_dir, use_gpu, num_workers, pin_memory):
+    ''' Return dataloaders for training, validation and teting datasets.
+    Return a dictionary to map indexes to classes.
+    '''
+    # Set data paths
+    train_dir = data_dir + '/train'
+    valid_dir = data_dir + '/valid'
+    test_dir = data_dir + '/test'
+
+    # Define transforms for the training, validation, and testing sets
+    data_transforms = {
+        'training': transforms.Compose([transforms.RandomRotation(30),
+                                        transforms.RandomResizedCrop(224),
+                                        transforms.RandomHorizontalFlip(),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize([0.485, 0.456, 0.406],
+                                                             [0.229, 0.224, 0.225])]),
+
+        'validation': transforms.Compose([transforms.Resize(256),
+                                          transforms.CenterCrop(224),
+                                          transforms.ToTensor(),
+                                          transforms.Normalize([0.485, 0.456, 0.406],
+                                                               [0.229, 0.224, 0.225])]),
+
+        'testing': transforms.Compose([transforms.Resize(256),
+                                       transforms.CenterCrop(224),
+                                       transforms.ToTensor(),
+                                       transforms.Normalize([0.485, 0.456, 0.406],
+                                                            [0.229, 0.224, 0.225])])
+    }
+
+    # Load the datasets with ImageFolder
+    image_datasets = {
+        'training': datasets.ImageFolder(train_dir, transform=data_transforms['training']),
+        'validation': datasets.ImageFolder(valid_dir, transform=data_transforms['validation']),
+        'testing': datasets.ImageFolder(test_dir, transform=data_transforms['testing'])
+    }
+
+    # Using the image datasets and the transforms, define the dataloaders
+    kwargs = {'num_workers': num_workers, 'pin_memory': pin_memory}
+
+    dataloaders = {
+        'training': torch.utils.data.DataLoader(image_datasets['training'], batch_size=64, shuffle=True, **kwargs),
+        'validation': torch.utils.data.DataLoader(image_datasets['validation'], batch_size=64, shuffle=True, **kwargs),
+        'testing': torch.utils.data.DataLoader(image_datasets['testing'], batch_size=64, shuffle=True, **kwargs)
+    }
+
+    class_to_idx = image_datasets['training'].class_to_idx
+    return dataloaders, class_to_idx
+
+
 def get_model_from_arch(arch, hidden_units):
     ''' Load an existing PyTorch model, freeze parameters and subsitute classifier.
     '''
@@ -100,7 +151,7 @@ def save_checkpoint(file_path, model, optimizer, arch, hidden_units, epochs):
 
 
 def load_checkpoint(file_path, verbose=False):
-    ''' Load a previously trained deep learning model.
+    ''' Load a previously trained deep learning model checkpoint.
     '''
     state = torch.load(file_path)
 
